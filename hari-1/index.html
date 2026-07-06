@@ -236,6 +236,17 @@
   // Cache hasil fetch supaya hemat request (patuh fair-use PokeAPI).
   const cache = new Map();
 
+  // PokeAPI mengarahkan gambar ke raw.githubusercontent.com yang gampang kena
+  // rate-limit (HTTP 429) saat banyak gambar dimuat sekaligus (misal PULL 10x).
+  // Kita alihkan ke jsDelivr — CDN yang me-mirror repo yang sama tanpa limit.
+  function lewatCDN(url) {
+    if (!url) return url;
+    return url.replace(
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/",
+      "https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/"
+    );
+  }
+
   // Ambil satu angka acak dalam [min, max].
   function acakAntara(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -280,8 +291,9 @@
     const mon = {
       id: p.id,
       name: rapikanNama(p.name),
-      artwork: art.front_default,
-      shinyArtwork: art.front_shiny,
+      artwork: lewatCDN(art.front_default),
+      shinyArtwork: lewatCDN(art.front_shiny),
+      fallbackArt: lewatCDN(p.sprites.front_default), // sprite piksel klasik, jaring pengaman
       types: p.types.map(t => t.type.name),
       stats: p.stats.map(st => ({ name: st.stat.name, value: st.base_stat })),
       bst: p.stats.reduce((sum, st) => sum + st.base_stat, 0),
@@ -396,6 +408,11 @@
   function render(result) {
     el.placeholder.style.display = "none";
     el.sprite.style.display = "block";
+    // Kalau artwork gagal dimuat, jatuh ke sprite piksel klasik (bukan ikon rusak).
+    el.sprite.onerror = () => {
+      el.sprite.onerror = null;
+      if (result.fallbackArt) el.sprite.src = result.fallbackArt;
+    };
     el.sprite.src = artOf(result);
     el.sprite.alt = result.name;
     el.shinyBadge.style.display = result.shiny ? "block" : "none";
@@ -419,6 +436,7 @@
     const chip = document.createElement("div");
     chip.className = "chip " + result.kelas + (result.shiny ? " shiny" : "");
     const img = document.createElement("img");
+    img.onerror = () => { img.onerror = null; if (result.fallbackArt) img.src = result.fallbackArt; };
     img.src = artOf(result);
     img.alt = result.name;
     chip.appendChild(img);

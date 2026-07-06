@@ -40,7 +40,7 @@ Cara data digabung:
 - Simulator memilih rarity dulu: SSR, Epic, Rare, atau Common.
 - Setiap rarity punya pool ID Pokemon yang sesuai.
 - Setelah ID dipilih, kode fetch detail Pokemon dan species dari PokeAPI.
-- Hasil gabungan ditampilkan sebagai kartu: gambar, nama, rarity, nomor Pokedex, type, total stat, capture rate, dan status legendary/mythical.
+- Hasil gabungan ditampilkan sebagai kartu: gambar, nama, rarity, nomor Pokedex, type, total stat, capture rate, status legendary/mythical, dan flavor text.
 
 Catatan penting:
 
